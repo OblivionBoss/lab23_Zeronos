@@ -40,6 +40,52 @@ class Unit{
 		void equip(Equipment *);  
 };
 
+void Unit::equip(Equipment *e){
+    int omax, oatk, odef;
+    vector<int> strg,ostrg;
+    strg = e->getStat();
+    omax = strg[0];
+    oatk = strg[1];
+    odef = strg[2];
+    hpmax += omax;
+    atk += oatk;
+    def += odef;
+    if(equipment == NULL){
+        equipment = e;
+    }
+    else if(this->equipment != e){
+        ostrg = equipment->getStat();
+        omax = ostrg[0];
+        oatk = ostrg[1];
+        odef = ostrg[2];
+        hpmax -= omax;
+        atk -= oatk;
+        def -= odef;
+        if(hp > hpmax) hp = hpmax; 
+        equipment = e;
+    }
+    else{
+        hpmax -= omax;
+        atk -= oatk;
+        def -= odef;
+        equipment = e;
+    }
+}
+
+vector<int> Equipment::getStat(){
+    vector<int> store;
+    store.push_back(hpmax);
+    store.push_back(atk);
+    store.push_back(def);
+    return store;
+}
+
+Equipment::Equipment(int a,int b,int c){
+    hpmax = a;
+	atk = b;
+	def = c;
+}
+
 Unit::Unit(string t,string n){ 
 	type = t;
 	name = n;
@@ -52,7 +98,8 @@ Unit::Unit(string t,string n){
 		atk = rand()%5+25;
 		def = rand()%3+5;
 	}
-	hp = hpmax;	
+	hp = hpmax;
+	dodge_on = false;
 	guard_on = false;
 	equipment = NULL;
 }
@@ -73,7 +120,8 @@ void Unit::showStatus(){
 }
 
 void Unit::newTurn(){
-	guard_on = false; 
+	guard_on = false;
+	dodge_on = false;
 }
 
 int Unit::beAttacked(int oppatk){
@@ -81,11 +129,16 @@ int Unit::beAttacked(int oppatk){
 	if(oppatk > def){
 		dmg = oppatk-def;	
 		if(guard_on) dmg = dmg/3;
+		if(dodge_on){
+		    int r = rand() % 2;
+            if (r == 1) dmg *= 0;
+            else dmg *= 2;
+		} 
 	}	
 	hp -= dmg;
 	if(hp <= 0){hp = 0;}
 	
-	return dmg;	
+	return dmg;		
 }
 
 int Unit::attack(Unit &opp){
@@ -106,6 +159,14 @@ void Unit::guard(){
 bool Unit::isDead(){
 	if(hp <= 0) return true;
 	else return false;
+}
+
+int Unit::ultimateAttack(Unit &opp){
+	return opp.beAttacked(2*atk);
+}
+
+void Unit::dodge(){
+	dodge_on = true;
 }
 
 void drawScene(char p_action,int p,char m_action,int m){
@@ -167,4 +228,3 @@ void playerLose(){
 	cout << "*                                                     *\n";
 	cout << "*******************************************************\n";
 };
-
